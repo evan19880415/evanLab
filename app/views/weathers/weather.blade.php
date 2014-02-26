@@ -23,10 +23,11 @@
 <div class="container">
 	<div id="weather" class="jumbotron">
 		<h1>Taiwan Forecast</h1>
+		<br>
 		<div class="form-group">
-			<label>Choose the location:</label>
-			<select id="locationMenu" class="form-control">  
-				<option value="Taipei_City" selected="selected">臺北市</option>  
+			<select id="locationMenu" class="form-control">
+				<option value="Taipei_City" selected="selected">Choose a location</option>  
+				<option value="Taipei_City">臺北市</option>  
 				<option value="New_Taipei_City">新北市</option>  
 				<option value="Taichung_City">臺中市</option>  
 				<option value="Tainan_City">臺南市</option>  
@@ -55,10 +56,9 @@
 			<h2>Extended Forecast</h2>
 			<br>
 			<div id="loading"></div>
-			<table id="weatherInfo" class='table'>
-				<tr>
-				</tr>
-			</table>		
+			<div id="weatherInfo" class='row'>
+				
+			</div>		
 		</div>
 	</div>
 
@@ -75,19 +75,19 @@ $(function(){
 				var model = $('#weatherInfo');
 				model.empty();
 				$.each(data, function(index, element) {
-					model.append("<td align='center'>"+
-							"<table>"+
-								"<tr>"+
-									"<td>"+ element.date +"<td>"+
+					model.append("<div align='center' class='col-md-2'>"+
+							"<table class='table' style='margin-top:10px;border:2px solid black;'>"+
+								"<tr align='center' style='border:2px solid black;'>"+
+									"<td>"+ element.date +"</td>"+
 								"</tr>"+
-								"<tr>"+
-									"<td>"+ "<img src='"+element.img+"'/>"+"<td>"+
+								"<tr align='center' style='border:2px solid black;'>"+
+									"<td>"+ "<img src='"+element.img+"'/>"+"</td>"+
 								"</tr>"+
-								"<tr>"+
-									"<td>"+ element.temperature +"<td>"+
+								"<tr align='center' style='border:2px solid black;'>"+
+									"<td>"+ element.temperature +"</td>"+
 								"</tr>"+
 							"</table>"+	
-						"</td>");
+						"</div>");
 			$('#loading').empty();
 			});
 		});
