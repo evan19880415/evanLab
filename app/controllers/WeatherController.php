@@ -41,7 +41,7 @@ class WeatherController extends BaseController {
 			$weather[$i]['title'] = $wtitle;
 			$weather[$i]['img'] = $wi;
 		}
-		return $matches;
+		return $weather;
 	}
 
 	public function getHspTrainInfo()
@@ -71,5 +71,27 @@ class WeatherController extends BaseController {
 
 		return View::make('weathers.highSpeedTrainBird')
 				->with('trainLinkInfo',$trainLinkInfo);
+	}
+	public function getHspTrainDetail()
+	{
+		$toURL = "http://www.thsrc.com.tw/tw/Article/ArticleContent/e2b6e806-6db0-4dc0-9e0b-8636652ca4cf";
+		$ch = curl_init();
+		$options = array(
+			CURLOPT_URL=>$toURL,
+			CURLOPT_RETURNTRANSFER=>true,
+			CURLOPT_USERAGENT=>"Mozilla/4.0 (compatible;)"
+		);
+		curl_setopt_array($ch, $options);
+		$result = curl_exec($ch); 
+		curl_close($ch);
+		//連接台灣高鐵
+		libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+  		$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$result);
+  		$finder = new DomXPath($doc);
+  		$nodes = $finder->query("/html/body/table/tbody/tr/td[1]/table/tbody/tr[1]/td");
+		
+
+		return $nodes->item(0)->nodeValue;
 	}
 }
