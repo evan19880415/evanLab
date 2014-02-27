@@ -5,8 +5,7 @@ class WeatherController extends BaseController {
 	public function getInfo($city)
 	{
 		$toURL = "http://www.cwb.gov.tw/V7/forecast/taiwan/inc/city/$city.htm";
-		$post = array(
-		);
+		$post = array();
 		$ch = curl_init();
 		$options = array(
 			CURLOPT_REFERER=>'',
@@ -42,7 +41,35 @@ class WeatherController extends BaseController {
 			$weather[$i]['title'] = $wtitle;
 			$weather[$i]['img'] = $wi;
 		}
-		return $weather;
+		return $matches;
 	}
 
+	public function getHspTrainInfo()
+	{
+		$toURL = "http://www.thsrc.com.tw/tw/Article/ArticleContent/7039d17d-1463-4c14-ad93-4d491dedcad5";
+		$ch = curl_init();
+		$options = array(
+			CURLOPT_URL=>$toURL,
+			CURLOPT_RETURNTRANSFER=>true,
+			CURLOPT_USERAGENT=>"Mozilla/4.0 (compatible;)"
+		);
+		curl_setopt_array($ch, $options);
+		$result = curl_exec($ch); 
+		curl_close($ch);
+		//連接台灣高鐵
+		$regexp_getLinkName = "<a.*?><strong><em>(.*)<\/em><\/strong><\/a>";
+		preg_match_all("/$regexp_getLinkName/",$result, $nameMatches, PREG_SET_ORDER);
+
+		$regexp_getLink = 'href=["](.*) target';
+		$nameMatchesLength = count($nameMatches)-1;
+		$trainLinkInfo = array(); 
+		for($i=0;$i<=$nameMatchesLength;$i++){
+			preg_match_all("/$regexp_getLink/",$nameMatches[$i][0], $linkMaches, PREG_SET_ORDER);
+			$trainLinkInfo[$i]['title'] = $nameMatches[$i][1];
+			$trainLinkInfo[$i]['link'] = $linkMaches[0][1];
+		}
+
+		return View::make('weathers.highSpeedTrainBird')
+				->with('trainLinkInfo',$trainLinkInfo);
+	}
 }
