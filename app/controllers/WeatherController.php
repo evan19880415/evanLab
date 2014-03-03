@@ -72,9 +72,10 @@ class WeatherController extends BaseController {
 		return View::make('weathers.highSpeedTrainBird')
 				->with('trainLinkInfo',$trainLinkInfo);
 	}
-	public function getHspTrainDetail()
+
+	public function hspTrainDetail($link)
 	{
-		$toURL = "http://www.thsrc.com.tw/tw/Article/ArticleContent/e2b6e806-6db0-4dc0-9e0b-8636652ca4cf";
+		$toURL = "http://www.thsrc.com.tw/tw/Article/ArticleContent/".$link;
 		$ch = curl_init();
 		$options = array(
 			CURLOPT_URL=>$toURL,
@@ -89,9 +90,77 @@ class WeatherController extends BaseController {
 		$doc = new DOMDocument();
   		$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$result);
   		$finder = new DomXPath($doc);
-  		$nodes = $finder->query("/html/body/table/tbody/tr/td[1]/table/tbody/tr[1]/td");
-		
+  		$sounthernTableRows = $finder->query("/html/body/table/tbody/tr/td[1]/table/tbody/tr[contains(@class,'Th')]");
+  		$northernNodes = $finder->query("/html/body/table/tbody/tr/td[2]/table/tbody/tr[contains(@class,'Th')]");
+  		$sounthernTableContents = $finder->query("/html/body/table/tbody/tr/td[1]/table/tbody/tr[not(contains(@class,'Th'))]");
 
-		return $nodes->item(0)->nodeValue;
+		// titleRow equals array length
+		//getTitle of table
+  		$titleRow = 0;
+  		$contentRow = 0;
+  		$title = array();
+  		$content = array();
+  		$dateTitleList = array();
+  		$dateContentList = array();
+  		foreach ($sounthernTableRows as $row) {
+		    // fetch all 'td' inside this 'tr'
+		    $td = $finder->query('td', $row);
+
+		    if ($td->length == 1) {
+		        $title[$titleRow]['direction'] = $td->item(0)->textContent;
+		    } else { 
+		        $title[$titleRow]['trainNumber'] = $td->item(0)->textContent;
+		        $title[$titleRow]['time'] = $td->item(1)->textContent;
+
+		        for($j=2;$j<=$td->length-1;$j++){
+		        	$dateTitleList[$j-2] = $td->item($j)->textContent;
+		        }
+		        $title[$titleRow]['date'] = $dateTitleList;
+		    }
+		    $titleRow++;
+		}
+
+		//getContent of table
+		$imgSrcPosition = array();
+		foreach ($sounthernTableContents as $row) {
+		    // fetch all 'td' inside this 'tr'
+		    $td = $finder->query('td', $row);
+		    $imgId = 0;
+
+ 			foreach($td as $src){
+ 				$img = $finder->query('img', $src);
+ 				if($img->length == 1){
+ 					/*switch($img->item(0)->getAttribute('src')){
+ 						case '/UploadFiles/Article/a4ff63a8-4021-4726-9762-a913abbe5d6a.jpg':
+ 							$imgSrcPosition[$imgId] = 1;
+ 							break;
+ 						case '/UploadFiles/Article/ef2f197c-0e37-4a5c-acea-bd91a5832ba4.jpg':
+ 							$imgSrcPosition[$imgId] = 2;
+ 							break;
+ 						case '/UploadFiles/Article/01f6e891-6ccb-4db3-969f-b5d1dae14440.jpg':
+ 							$imgSrcPosition[$imgId] = 3;
+ 							break;
+ 						case '/UploadFiles/Article/a0c660d6-fc55-4ab5-b9c3-579abc699205.jpg':
+ 							$imgSrcPosition[$imgId] = 4;
+ 							break;			
+ 					}*/
+ 					$imgSrcPosition[$imgId] = $img->item(0)->getAttribute('src');
+ 				}else{
+ 					$imgSrcPosition[$imgId] = '-';
+ 				}
+ 				$imgId++;
+ 			}
+
+		    $content[$contentRow]['trainNumber'] = $td->item(0)->textContent;
+		    $content[$contentRow]['time'] = $td->item(1)->textContent;
+
+		    $content[$contentRow]['date'] = $imgSrcPosition;
+		    
+		    $contentRow++;
+		}
+
+		return View::make('weathers.highSpeedTrainInfo')
+				->with('content',$content)
+				->with('title',$title);
 	}
 }

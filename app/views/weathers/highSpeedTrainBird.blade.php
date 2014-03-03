@@ -26,12 +26,19 @@
 		<br>
 		<div id="trainContainer" align='center'>
 			@for($i=0;$i<=count($trainLinkInfo)-1;$i++)
-				<h3><a href="{{$trainLinkInfo[$i]['link']}}">{{$trainLinkInfo[$i]['title']}}</a></h3><br>
+				<h3><a class="trainLink" href="#" data-id="{{$trainLinkInfo[$i]['link']}}">{{$trainLinkInfo[$i]['title']}}</a></h3><br>
 			@endfor						
 		</div>
 	</div>
 
 </div>
+<script>
+	$('.trainLink').click(function(){
+		var link = $(this).data('id').split("/");;
+		var path = "{{ URL::to('hspTrainDetail') }}";
+		window.location.href = path+"/"+link[6];
+	});
+</script>
 
 <!-- Latest compiled and minified JavaScript -->
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>

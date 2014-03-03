@@ -17,3 +17,4 @@ Route::get('/', function()
 });
 
 Route::controller('weather', 'WeatherController');
+Route::get('hspTrainDetail/{link}', 'WeatherController@hspTrainDetail');
