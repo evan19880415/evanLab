@@ -22,7 +22,7 @@
 <body>
 <div class="container">
 	<div id="train">
-		<h1>Hign Speed Train Bird Ticket</h1>
+		<h1>High Speed Train Bird Ticket</h1>
 		<br>
 		<table class='table'>
 			<tr>
@@ -49,31 +49,69 @@
 				</td>
 				<td>表限量提供早鳥65折或8折，其餘全面適用早鳥9折優惠</td>
 			</tr>
-		</table>	
-		<table class='table'>
-			<tr>
-				<td>{{ $title[1]['trainNumber'] }}</td>
-				<td>{{ $title[1]['time'] }}</td>
-				@for($j=0;$j<=count($title[1]['date'])-1;$j++)
-						<td>{{ $title[1]['date'][$j] }}</td>
-				@endfor	
-			</tr>	
-			@for($i=0;$i<=count($content)-1;$i++)
-				<tr>
-					<td>{{ $content[$i]['trainNumber'] }}</td>
-					<td>{{ $content[$i]['time'] }}</td>
-					@for($j=2;$j<=count($content[$i]['date'])-1;$j++)
-						<td>
-							@if($content[$i]['date'][$j] <> '-')
-								<img src="http://www.thsrc.com.tw{{ $content[$i]['date'][$j] }}"/>
-							@else
-								<span>-</span>
-							@endif	
-						</td>
-					@endfor	
-				</tr>
-			@endfor	
 		</table>
+		<ul class="nav nav-pills nav-justified">
+			<li class="active">
+				<a href="#southern" data-toggle="tab">南下列車</a>
+			</li>
+			<li>
+				<a href="#northern" data-toggle="tab">北上列車</a>
+			</li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active" id="southern"> 	
+				<table class='table'>
+					<tr>
+						<td>{{ $title[1]['trainNumber'] }}</td>
+						<td>{{ $title[1]['time'] }}</td>
+						@for($j=0;$j<=count($title[1]['date'])-1;$j++)
+								<td>{{ $title[1]['date'][$j] }}</td>
+						@endfor	
+					</tr>	
+					@for($i=0;$i<=count($southernContents)-1;$i++)
+						<tr>
+							<td>{{ $southernContents[$i]['trainNumber'] }}</td>
+							<td>{{ $southernContents[$i]['time'] }}</td>
+							@for($j=2;$j<=count($southernContents[$i]['date'])-1;$j++)
+								<td>
+									@if($southernContents[$i]['date'][$j] <> '-')
+										<img src="http://www.thsrc.com.tw{{ $southernContents[$i]['date'][$j] }}"/>
+									@else
+										<span>-</span>
+									@endif	
+								</td>
+							@endfor	
+						</tr>
+					@endfor	
+				</table>
+			</div>
+			<div class="tab-pane" id="northern">
+				<table class='table'>
+					<tr>
+						<td>{{ $title[1]['trainNumber'] }}</td>
+						<td>{{ $title[1]['time'] }}</td>
+						@for($j=0;$j<=count($title[1]['date'])-1;$j++)
+								<td>{{ $title[1]['date'][$j] }}</td>
+						@endfor	
+					</tr>	
+					@for($i=0;$i<=count($northernContents)-1;$i++)
+						<tr>
+							<td>{{ $northernContents[$i]['trainNumber'] }}</td>
+							<td>{{ $northernContents[$i]['time'] }}</td>
+							@for($j=2;$j<=count($northernContents[$i]['date'])-1;$j++)
+								<td>
+									@if($northernContents[$i]['date'][$j] <> '-')
+										<img src="http://www.thsrc.com.tw{{ $northernContents[$i]['date'][$j] }}"/>
+									@else
+										<span>-</span>
+									@endif	
+								</td>
+							@endfor	
+						</tr>
+					@endfor	
+				</table>
+			</div>
+		</div>	
 	</div>
 
 </div>

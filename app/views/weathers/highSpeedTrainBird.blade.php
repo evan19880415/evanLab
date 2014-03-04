@@ -22,7 +22,7 @@
 <body>
 <div class="container">
 	<div id="train" class="jumbotron">
-		<h1>Hign Speed Train Bird Ticket</h1>
+		<h1>High Speed Train Bird Ticket</h1>
 		<br>
 		<div id="trainContainer" align='center'>
 			@for($i=0;$i<=count($trainLinkInfo)-1;$i++)

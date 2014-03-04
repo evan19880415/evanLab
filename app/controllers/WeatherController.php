@@ -93,15 +93,13 @@ class WeatherController extends BaseController {
   		$sounthernTableRows = $finder->query("/html/body/table/tbody/tr/td[1]/table/tbody/tr[contains(@class,'Th')]");
   		$northernNodes = $finder->query("/html/body/table/tbody/tr/td[2]/table/tbody/tr[contains(@class,'Th')]");
   		$sounthernTableContents = $finder->query("/html/body/table/tbody/tr/td[1]/table/tbody/tr[not(contains(@class,'Th'))]");
+  		$northernTableContents = $finder->query("/html/body/table/tbody/tr/td[2]/table/tbody/tr[not(contains(@class,'Th'))]");
 
 		// titleRow equals array length
 		//getTitle of table
   		$titleRow = 0;
-  		$contentRow = 0;
   		$title = array();
-  		$content = array();
   		$dateTitleList = array();
-  		$dateContentList = array();
   		foreach ($sounthernTableRows as $row) {
 		    // fetch all 'td' inside this 'tr'
 		    $td = $finder->query('td', $row);
@@ -120,15 +118,29 @@ class WeatherController extends BaseController {
 		    $titleRow++;
 		}
 
+		$southernContents = $this->hspTrainParse($sounthernTableContents,$finder);
+		$northernContents = $this->hspTrainParse($northernTableContents,$finder);
+		return View::make('weathers.highSpeedTrainInfo')
+				->with('southernContents',$southernContents)
+				->with('northernContents',$northernContents)
+				->with('title',$title);	
+	}
+
+	private function hspTrainParse($path,$queryDom)
+	{
+		$content = array();
+		$contentRow = 0;
+		$dateContentList = array();
+
 		//getContent of table
 		$imgSrcPosition = array();
-		foreach ($sounthernTableContents as $row) {
+		foreach ($path as $row) {
 		    // fetch all 'td' inside this 'tr'
-		    $td = $finder->query('td', $row);
+		    $td = $queryDom->query('td', $row);
 		    $imgId = 0;
 
  			foreach($td as $src){
- 				$img = $finder->query('img', $src);
+ 				$img = $queryDom->query('img', $src);
  				if($img->length == 1){
  					/*switch($img->item(0)->getAttribute('src')){
  						case '/UploadFiles/Article/a4ff63a8-4021-4726-9762-a913abbe5d6a.jpg':
@@ -158,9 +170,7 @@ class WeatherController extends BaseController {
 		    
 		    $contentRow++;
 		}
+		return $content;
 
-		return View::make('weathers.highSpeedTrainInfo')
-				->with('content',$content)
-				->with('title',$title);
 	}
 }
