@@ -115,7 +115,13 @@
 	</div>
 
 </div>
-
+<style type="text/css">
+		img {
+		    width: 100% !important;
+		    max-width: 40px;
+		    height: auto !important;
+		}
+</style>
 <!-- Latest compiled and minified JavaScript -->
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 </body>
