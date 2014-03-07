@@ -23,8 +23,6 @@
 		</tr>
 	@endfor
 </table>
-<!--<a class="btn btn-success" style="{{ $prevLinkStyle }}" href="#">上一頁</a>-->
-<!--<a class="btn btn-default" style="{{ $nextLinkStyle }}" href="#">下一頁</a>-->	
 			
 <style type="text/css">
 		img {

@@ -294,9 +294,7 @@ class ToyController extends BaseController {
 
 	  	//return 	$contentTable->item(0)->nodeValue;
 	  	return View::make('toys.highSpeedTrainContent')
-	  			->with("content",$content)
-	  			->with("prevLinkStyle",$prevLink->item(0)->getAttribute('style'))
-	  			->with("nextLinkStyle",$nextLink->item(0)->getAttribute('style'));
+	  			->with("content",$content);
 	  	
 	}
 
