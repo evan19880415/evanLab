@@ -13,8 +13,8 @@
 
 Route::get('/', function()
 {
-	return View::make('weathers.weather');;
+	return View::make('toys.weather');;
 });
 
-Route::controller('weather', 'WeatherController');
-Route::get('hspTrainDetail/{link}', 'WeatherController@hspTrainDetail');
+Route::controller('toys', 'ToyController');
+Route::get('hspTrainDetail/{link}', 'ToyController@hspTrainDetail');

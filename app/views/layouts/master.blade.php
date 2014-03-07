@@ -1,9 +1,7 @@
-<!-- app/views/caes/index.blade.php -->
-
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Taiwan Forecast</title>
+	<title>HSP Train</title>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -18,28 +16,13 @@
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+    @yield('css')
+    @yield('js')
 </head>
 <body>
-<div class="container">
-	<div id="train" class="jumbotron">
-		<h1>High Speed Train Bird Ticket</h1>
-		<br>
-		<div id="trainContainer" align='center'>
-			@for($i=0;$i<=count($trainLinkInfo)-1;$i++)
-				<h3><a class="trainLink" href="#" data-id="{{$trainLinkInfo[$i]['link']}}">{{$trainLinkInfo[$i]['title']}}</a></h3><br>
-			@endfor						
-		</div>
+	<div class="container">
+		@yield('content')
 	</div>
-
-</div>
-<script>
-	$('.trainLink').click(function(){
-		var link = $(this).data('id').split("/");;
-		var path = "{{ URL::to('hspTrainDetail') }}";
-		window.location.href = path+"/"+link[6];
-	});
-</script>
-
 <!-- Latest compiled and minified JavaScript -->
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 </body>
