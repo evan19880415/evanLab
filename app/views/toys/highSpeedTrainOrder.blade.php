@@ -254,6 +254,11 @@
 				}
 			});
 		});
+		
+		//prevent soft keypad on android
+	    $('#toTimeInputField').click(function(){
+	    	this.blur();
+	    });
 
 		$('#toTimeInputField').datepicker({
 			    format: "yyyy/mm/dd",
