@@ -174,10 +174,17 @@ class ToyController extends BaseController {
 
 	}
 
+	//訂票流程
 	public function getHspTrainOrder()
 	{
 
 		return View::make('toys.highSpeedTrainOrder');
+	}
+
+	public function getHspTrainCheck()
+	{
+
+		return View::make('toys.highSpeedTrainCheck');
 	}
 
 	public function getHspTrainSecurity()
@@ -186,11 +193,28 @@ class ToyController extends BaseController {
 		$toURL = "https://irs.thsrc.com.tw/IMINT";
 
 		$pageResult = $this->sendHttpsRuest($toURL);
-		
-	  	return 	array('imageUrl'=>base64_encode($pageResult[0]),'formUrl'=>$pageResult[1]);
-	  	//return dirname(dirname(dirname(__FILE__)))."/CAcerts/cookies.txt";	
+
+		libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+	  	$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$pageResult);
+	  	$finder = new DomXPath($doc);
+	  	$securityImage = $finder->query('//*[@id="BookingS1Form_homeCaptcha_passCode"]');
+	  	$securityform = $finder->query('//*[@id="BookingS1Form"]');
+
+	  	if($securityform->length == 0){
+	  		return Response::view('errors.orderTicket', array());
+	  	}else{
+
+		  	$imageUrl = "https://irs.thsrc.com.tw".$securityImage->item(0)->getAttribute('src');
+		  	$formUrl =  "https://irs.thsrc.com.tw".$securityform->item(0)->getAttribute('action');
+
+		  	$pageResult = $this->sendHttpsRuestImage($imageUrl);
+			
+		  	return 	array('imageUrl'=>base64_encode($pageResult),'formUrl'=>$formUrl);
+	  	}
 	  	
 	}
+
 	public function sendHttpsRuest($toURL){
 		$cookie = dirname(dirname(dirname(__FILE__)))."/CAcerts/cookies.txt";
 		$ch = curl_init();
@@ -199,16 +223,10 @@ class ToyController extends BaseController {
 		curl_setopt($ch, CURLOPT_URL, $toURL);
 		curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie); 
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		//curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-		//curl_setopt($ch, CURLOPT_CAINFO, getcwd() . "/CAcerts/AddTrustExternalCARoot.crt");
-		//curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		
 		$result = curl_exec($ch);
 		$response = curl_getinfo($ch);
-
-		//preg_match_all('/Set-Cookie:(.*);/iU',$result,$str);
-		//$cookie = $str[1];
 
 		if ($response['http_code'] == 301 || $response['http_code'] == 302){
 			curl_setopt($ch,CURLOPT_COOKIEFILE,$cookie);
@@ -216,27 +234,36 @@ class ToyController extends BaseController {
 			$response = curl_getinfo($ch);
 		}
 
-		libxml_use_internal_errors(true);
-		$doc = new DOMDocument();
-	  	$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$result);
-	  	$finder = new DomXPath($doc);
-	  	$securityImage = $finder->query('//*[@id="BookingS1Form_homeCaptcha_passCode"]');
-	  	$securityform = $finder->query('//*[@id="BookingS1Form"]');
+		curl_close($ch);
+		return $result;
+	}
 
-	  	$imageUrl = "https://irs.thsrc.com.tw".$securityImage->item(0)->getAttribute('src');
-	  	$formUrl =  "https://irs.thsrc.com.tw".$securityform->item(0)->getAttribute('action');
-	  	curl_setopt($ch, CURLOPT_BINARYTRANSFER,1);
-	  	curl_setopt($ch, CURLOPT_URL, $imageUrl);
-	  	$result = curl_exec($ch);
+	public function sendHttpsRuestImage($toURL){
+		$cookie = dirname(dirname(dirname(__FILE__)))."/CAcerts/cookies.txt";
+		$ch = curl_init();
+		curl_setopt($ch,CURLOPT_HEADER,0); 
+		curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.0.3705; .NET CLR 1.1.4322)");
+		curl_setopt($ch, CURLOPT_URL, $toURL);
+		curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie); 
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_BINARYTRANSFER,1);
+		
+		$result = curl_exec($ch);
+		$response = curl_getinfo($ch);
+
+		if ($response['http_code'] == 301 || $response['http_code'] == 302){
+			curl_setopt($ch,CURLOPT_COOKIEFILE,$cookie);
+			$result = curl_exec($ch);
+			$response = curl_getinfo($ch);
+		}
 
 		curl_close($ch);
-		return array($result,$formUrl);
+		return $result;
 	}
 
 	public function postHspTrainQuery()
 	{
-
-		$toURL = "https://irs.thsrc.com.tw/IMINT";
 		$formUrl = Input::get('formUrl');
 		$ticketData = array(
 			'selectStartStation'=>Input::get('selectStartStation'),
@@ -256,7 +283,7 @@ class ToyController extends BaseController {
 			'homeCaptcha:securityCode'=>Input::get('homeCaptcha:securityCode'),
 			'offPeakTrainSearchContainer:onlyQueryOffPeak'=>'on');
 
-		$pageResult = $this->sendHttpsRuestPost($toURL,$ticketData,$formUrl);
+		$pageResult = $this->sendHttpsRuestPost($ticketData,$formUrl);
 
 		libxml_use_internal_errors(true);
 		$doc = new DOMDocument();
@@ -267,38 +294,196 @@ class ToyController extends BaseController {
 
 	  	$prevLink = $finder->query('//*[@id="BookingS2Form_TrainQueryDataViewPanel_PreAndLaterTrainContainer_preTrainLink"]');
 	  	$nextLink = $finder->query('//*[@id="BookingS2Form_TrainQueryDataViewPanel_PreAndLaterTrainContainer_laterTrainLink"]');
-	  	//$formUrl = $securityform->item(0)->getAttribute('action');
-
-		//getContent of table
-  		$contentRow = 0;
-  		$content = array();
-  		$dateContentList = array();
-  		foreach ($contentTable as $row) {
-		    // fetch all 'td' inside this 'tr'
-		    $td = $finder->query('td', $row);
-		    $inputValue = $finder->query('./input',$td->item(0)); 
-		    $img = $finder->query('./img',$td->item(2)); 
-   
-		    $content[$contentRow]['value'] = $inputValue->item(0)->getAttribute('value');
-		    $content[$contentRow]['number'] = $td->item(1)->textContent;
-		    if($img->length <>0){
-		    	$content[$contentRow]['discount'] = $img->item(0)->getAttribute('src');
-		    }else{
-		    	$content[$contentRow]['discount'] = "";
-		    }
-		    $content[$contentRow]['startTime'] = $td->item(3)->textContent;
-		    $content[$contentRow]['destinationTime'] = $td->item(4)->textContent;
-
-		    $contentRow++;
-		}
-
-	  	//return 	$contentTable->item(0)->nodeValue;
-	  	return View::make('toys.highSpeedTrainContent')
-	  			->with("content",$content);
 	  	
+	  	if($securityform->length == 0){
+	  		return Response::view('errors.orderTicket', array());
+	  	}else{
+		  	$formUrl =  "https://irs.thsrc.com.tw".$securityform->item(0)->getAttribute('action');
+
+			//getContent of table
+	  		$contentRow = 0;
+	  		$content = array();
+	  		$dateContentList = array();
+	  		foreach ($contentTable as $row) {
+			    // fetch all 'td' inside this 'tr'
+			    $td = $finder->query('td', $row);
+			    $inputValue = $finder->query('./input',$td->item(0)); 
+			    $img = $finder->query('./img',$td->item(2)); 
+	   
+			    $content[$contentRow]['value'] = $inputValue->item(0)->getAttribute('value');
+			    $content[$contentRow]['number'] = $td->item(1)->textContent;
+			    if($img->length <>0){
+			    	$content[$contentRow]['discount'] = $img->item(0)->getAttribute('src');
+			    }else{
+			    	$content[$contentRow]['discount'] = "";
+			    }
+			    $content[$contentRow]['startTime'] = $td->item(3)->textContent;
+			    $content[$contentRow]['destinationTime'] = $td->item(4)->textContent;
+
+			    $contentRow++;
+			}
+
+		  	//return 	$contentTable->item(0)->nodeValue;
+		  	return View::make('toys.highSpeedTrainContent')
+		  			->with("content",$content)
+	  				->with("formUrl",$formUrl);
+	  	}			  	
 	}
 
-	public function sendHttpsRuestPost($toURL,$ticketData,$formUrl){
+	public function postHspTrainOrderQuery(){
+		$formUrl = Input::get('formUrl');
+		$orderTicketData = array(
+			'TrainQueryDataViewPanel:TrainGroup'=>Input::get('TrainQueryDataViewPanel:TrainGroup'));
+		$pageResult = $this->sendHttpsRuestPost($orderTicketData,$formUrl);
+
+		libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+	  	$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$pageResult);
+	  	$finder = new DomXPath($doc);
+	  	$securityformNode = $finder->query('//*[@id="BookingS3FormSP"]');
+	  	$contentTableNode = $finder->query('//*[@id="content"]/span[1]/table/tr[2]');
+
+		if($securityformNode->length == 0){
+	  		return Response::view('errors.orderTicket', array());
+	  	}else{
+			//getContent of table
+	  		$content = array();
+	  		$dateContentList = array();
+	  		foreach ($contentTableNode as $row) {
+			    // fetch all 'td' inside this 'tr'
+			    $td = $finder->query('td', $row);
+	   			
+			    $content['date'] = $td->item(1)->textContent;
+			    $content['trainNumber'] = $td->item(2)->textContent;
+			    $content['startLocation'] = $td->item(3)->textContent;
+			    $content['destination'] = $td->item(4)->textContent;
+			    $content['startTime'] = $td->item(5)->textContent;
+			    $content['destinationTime'] = $td->item(6)->textContent;
+			    $content['status'] = $td->item(8)->textContent;
+			    $content['price'] = $td->item(10)->textContent;
+			}
+
+			$formUrl = "https://irs.thsrc.com.tw".$securityformNode->item(0)->getAttribute('action');
+	 	
+			//return Redirect::to('toys/hsp-train-price', array($pageResult));
+			//return array($content,$totalPrice);
+			return array($content,$formUrl);
+		}	
+	}
+
+	public function postHspTrainFinished(){
+		$formUrl = Input::get('formUrl');
+		$orderTicketData = array(
+			'idInputRadio'=>'radio36',
+			'idInputRadio:idNumber'=>Input::get('idInputRadio:idNumber'),
+			'eaiPhoneCon:phoneInputRadio'=>'radio47',
+			'eaiPhoneCon:phoneInputRadio:mobilePhone'=>Input::get('eaiPhoneCon:phoneInputRadio:mobilePhone'),
+			'TicketPassengerInfoInputPanel:passengerDataView:0:passengerDataView2:passengerDataLastName'=>'',
+			'TicketPassengerInfoInputPanel:passengerDataView:0:passengerDataView2:passengerDataFirstName'=>'',
+			'TicketPassengerInfoInputPanel:passengerDataView:0:passengerDataView2:passengerDataInputRadio'=>'radio59',
+			'TicketPassengerInfoInputPanel:passengerDataView:0:passengerDataView2:passengerDataInputRadio:passengerDataIdNumber'=>'',
+			'agree'=>'on',
+			'isGoBackM'=>'');
+
+		$pageResult = $this->sendHttpsRuestPost($orderTicketData,$formUrl);
+		
+		libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+	  	$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$pageResult);
+	  	$finder = new DomXPath($doc);
+	  	$contentTableNode = $finder->query('//*[@id="content"]/span[1]/table[2]/tr[2]');	  	
+	  	$ticketKeyNode = $finder->query('//*[@id="content"]/span[1]/table[1]/tr[1]/td[2]/span');
+	  	$ticketStatusNode = $finder->query('//*[@id="content"]/span[1]/table[1]/tr[1]/td[4]/span');
+	  	
+	  	if($contentTableNode->length == 0){
+	  		return Response::view('errors.orderTicket', array());
+	  	}else{
+		  	$content = array();
+	  		$dateContentList = array();
+	  		foreach ($contentTableNode as $row) {
+			    // fetch all 'td' inside this 'tr'
+			    $td = $finder->query('td', $row);
+	   			
+			    $content['date'] = $td->item(1)->textContent;
+			    $content['trainNumber'] = $td->item(2)->textContent;
+			    $content['startLocation'] = $td->item(3)->textContent;
+			    $content['destination'] = $td->item(4)->textContent;
+			    $content['startTime'] = $td->item(5)->textContent;
+			    $content['destinationTime'] = $td->item(6)->textContent;
+			    $content['price'] = $td->item(7)->textContent;
+			    $content['seat'] = $td->item(8)->textContent;
+			}
+
+			$ticketKey = $ticketKeyNode->item(0)->nodeValue;
+			$ticketStatus = $ticketStatusNode->item(0)->nodeValue;	
+
+			Session::flash('message', '訂票成功');
+
+			return View::make('toys.highSpeedTrainCheckContent')
+		  			->with("ticketKey",$ticketKey)
+		  			->with("ticketStatus",$ticketStatus)
+		  			->with("content",$content);  
+		}
+	}
+
+	public function postHspTrainCheckTicket(){
+		$toUrl = "https://irs.thsrc.com.tw/IMINT/?wicket:bookmarkablePage=:tw.com.mitac.webapp.thsr.viewer.History";
+		$orderTicketData = array(
+			'idInputRadio'=>'radio9',
+			'idInputRadio:rocId'=>Input::get('idInputRadio:rocId'),
+			'orderId'=>Input::get('orderId')
+		);
+
+		$pageResult = $this->sendHttpsRuest($toUrl);
+	
+		libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+	  	$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$pageResult);
+	  	$finder = new DomXPath($doc);
+	  	$formUrlNode = $finder->query('//*[@id="HistoryForm"]');
+
+
+	  	if($formUrlNode->length == 0){
+	  		return Response::view('errors.orderTicket', array());
+	  	}else{
+		  	$formUrl = "https://irs.thsrc.com.tw".$formUrlNode->item(0)->getAttribute('action');
+
+		  	$pageResult = $this->sendHttpsRuestPost($orderTicketData,$formUrl);
+		  	$doc = new DOMDocument();
+		  	$doc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$pageResult);
+		  	$finder = new DomXPath($doc);
+
+		  	$contentTableNode = $finder->query('//*[@id="content"]/span[1]/table[2]/tr[2]');
+		  	$ticketKeyNode = $finder->query('//*[@id="content"]/span[1]/table[1]/tr[1]/td[2]/span');
+		  	$ticketStatusNode = $finder->query('//*[@id="content"]/span[1]/table[1]/tr[1]/td[4]/span');
+
+		  	$content = array();
+	  		$dateContentList = array();
+	  		foreach ($contentTableNode as $row) {
+			    // fetch all 'td' inside this 'tr'
+			    $td = $finder->query('td', $row);
+	   			
+			    $content['date'] = $td->item(1)->textContent;
+			    $content['trainNumber'] = $td->item(2)->textContent;
+			    $content['startLocation'] = $td->item(3)->textContent;
+			    $content['destination'] = $td->item(4)->textContent;
+			    $content['startTime'] = $td->item(5)->textContent;
+			    $content['destinationTime'] = $td->item(6)->textContent;
+			    $content['price'] = $td->item(7)->textContent;
+			    $content['seat'] = $td->item(8)->textContent;
+			}
+
+			$ticketKey = $ticketKeyNode->item(0)->nodeValue;
+			$ticketStatus = $ticketStatusNode->item(0)->nodeValue;
+
+			return View::make('toys.highSpeedTrainCheckContent')
+		  			->with("ticketKey",$ticketKey)
+		  			->with("ticketStatus",$ticketStatus)
+		  			->with("content",$content);
+		}  			  
+	}
+
+	public function sendHttpsRuestPost($ticketData,$formUrl){
 		$cookie = dirname(dirname(dirname(__FILE__)))."/CAcerts/cookies.txt";
 		$postData = '';
    		//create name value pairs seperated by &

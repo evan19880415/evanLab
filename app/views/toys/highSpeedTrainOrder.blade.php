@@ -2,6 +2,7 @@
 @section('content')
 
 <h1>訂票資訊</h1>
+<br>
 {{ Form::open(array('url' => 'toys/hsp-train-query','method' => 'post')) }}
 	<div class="form-group">
 		{{ Form::label('selectStartStation', '起程站') }}
@@ -13,7 +14,7 @@
 		{{ Form::select('selectDestinationStation', array('0' => '台北', '1' => '板橋', '2' => '桃園', '3' => '新竹', '4' => '台中', '5' => '嘉義', '6' => '台南', '7' => '左營'), Input::old('selectDestinationStation'), array('class' => 'form-control')) }}
 	</div>
 
-	<div class="form-group">
+	<div class="form-group" style="display: none;">
 		<label>車廂種類</label>
 		{{ Form::select('trainCon:trainRadioGroup', array('0' => '標準車廂', '1' => '商務車廂'), Input::old('trainCon:trainRadioGroup'), array('class' => 'form-control')) }}
 	</div>
@@ -25,12 +26,7 @@
 
 	<div class="form-group">
 		<label>去程日期</label>
-		<div class="input-group">
-			<input class="form-control" name="toTimeInputField" type="text" id="toTimeInputField" placeholder="右側按鈕訂購回程">	
-				<div class="input-group-btn">
-		            <a class="btn btn-default" id="backButton" href="#"><i class="glyphicon glyphicon-refresh"></i></a>
-		        </div>
-		</div>
+		<input class="form-control" name="toTimeInputField" type="text" id="toTimeInputField">
 	</div>
 	<div class="form-group timepicker">	
 		<label>時間</label>
@@ -150,7 +146,7 @@
 			<option value="10F">全票 - 10</option>
 		</select>
 		<br>
-		<select name="ticketPanel:rows:1:ticketAmount" class="form-control">
+		<select name="ticketPanel:rows:1:ticketAmount" class="form-control" style="display: none;">
 			<option selected="selected" value="0H">孩童票(6-11歲) - 0</option>
 			<option value="1H">孩童票(6-11歲) - 1</option>
 			<option value="2H">孩童票(6-11歲) - 2</option>
@@ -163,8 +159,7 @@
 			<option value="9H">孩童票(6-11歲) - 9</option>
 			<option value="10H">孩童票(6-11歲) - 10</option>
 		</select>
-		<br>
-		<select name="ticketPanel:rows:2:ticketAmount" class="form-control">
+		<select name="ticketPanel:rows:2:ticketAmount" class="form-control" style="display: none;">
 			<option selected="selected" value="0W">愛心票 - 0</option>
 			<option value="1W">愛心票 - 1</option>
 			<option value="2W">愛心票 - 2</option>
@@ -177,8 +172,7 @@
 			<option value="9W">愛心票 - 9</option>
 			<option value="10W">愛心票 - 10</option>
 		</select>
-		<br>
-		<select name="ticketPanel:rows:3:ticketAmount" class="form-control">
+		<select name="ticketPanel:rows:3:ticketAmount" class="form-control" style="display: none;">
 			<option selected="selected" value="0E">敬老票(65歲以上) - 0</option>
 			<option value="1E">敬老票(65歲以上) - 1</option>
 			<option value="2E">敬老票(65歲以上) - 2</option>
@@ -190,9 +184,8 @@
 			<option value="8E">敬老票(65歲以上) - 8</option>
 			<option value="9E">敬老票(65歲以上) - 9</option>
 			<option value="10E">敬老票(65歲以上) - 10</option>
-		</select>	
-		<br>
-		<div class="form-group">
+		</select>
+		<div class="form-group" style="display: none;">
 			{{ Form::hidden('formUrl', Input::old('formUrl'), array('id' => 'formUrl','class' => 'form-control')) }}
 		</div>
 		<a href="#" id="btnTicketCheck" class="btn btn-primary">開始查詢</a>	
@@ -206,7 +199,7 @@
 	        </div>
 	        <div class="modal-body">
 	        	<div id="secureImage"></div>
-	            <input class="form-control" name="homeCaptcha:securityCode" type="text" id="homeCaptcha:securityCode">
+	            <input class="form-control security" name="homeCaptcha:securityCode" type="text" id="homeCaptcha:securityCode">
 	        </div>
 	        <div class="modal-footer">
 	          {{ Form::submit('OK', array('class' => 'btn btn-default')) }}
@@ -241,11 +234,10 @@
 			}
 		});
 
-		var form="";
-
 		//handle img security comfirm dialog modal
 		$('#btnTicketCheck').on('click', function(e) {
 			e.preventDefault();
+			$('.security').val("");
 			var path = "{{ URL::to('toys/hsp-train-security') }}";
 			$('#secureImage').empty();
 			//$('#modal-ticketAuth').modal('show');
