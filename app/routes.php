@@ -18,3 +18,5 @@ Route::get('/', function()
 
 Route::controller('toys', 'ToyController');
 Route::get('hspTrainDetail/{link}', 'ToyController@hspTrainDetail');
+Route::get('dropboxFolder', 'DropboxController@dropboxFolder');
+Route::get('dropboxDetail', 'DropboxController@dropboxDetail');
